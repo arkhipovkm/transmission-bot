@@ -793,7 +793,7 @@ func process(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 }
 
 func main() {
-	telegramBotApiToken := os.Getenv("BOT_TOKEN")
+	telegramBotApiToken := os.Getenv("TELEGRAM_BOT_API_TOKEN")
 	if telegramBotApiToken == "" {
 		panic("No Bot API Token provided")
 	}
