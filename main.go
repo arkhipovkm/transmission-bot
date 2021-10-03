@@ -70,12 +70,14 @@ type TopicContent struct {
 	Breadcrumb   string
 }
 
-func newHttpClient(uri string) (*http.Client, error) {
+func newHttpClient(uri string) (*http.Client, *url.URL, error) {
 	var err error
 	var client *http.Client
-	_url, err := url.Parse(uri)
+	var _url *url.URL
+
+	_url, err = url.Parse(uri)
 	if err != nil {
-		return client, err
+		return client, _url, err
 	}
 	cookie := http.Cookie{
 		Name:  "bb_session",
@@ -83,24 +85,24 @@ func newHttpClient(uri string) (*http.Client, error) {
 	}
 	jar, err := cookiejar.New(&cookiejar.Options{PublicSuffixList: publicsuffix.List})
 	if err != nil {
-		return client, err
+		return client, _url, err
 	}
 	jar.SetCookies(_url, []*http.Cookie{&cookie})
 	client = &http.Client{
 		Jar: jar,
 	}
-	return client, err
+	return client, _url, err
 }
 
 func doPOSTRequest(uri string, data url.Values) ([]byte, error) {
 	var err error
 	var body []byte
 
-	client, err := newHttpClient(uri)
+	client, _url, err := newHttpClient(uri)
 	if err != nil {
 		return body, err
 	}
-	resp, err := client.PostForm(uri, data)
+	resp, err := client.PostForm(_url.String(), data)
 	if err != nil {
 		return body, err
 	}
@@ -121,11 +123,12 @@ func doGETRequest(uri string, query url.Values) ([]byte, error) {
 	var err error
 	var body []byte
 
-	client, err := newHttpClient(uri)
+	client, _url, err := newHttpClient(uri)
 	if err != nil {
 		return body, err
 	}
-	resp, err := client.Get(uri + query.Encode())
+	_url.ForceQuery = true
+	resp, err := client.Get(_url.String() + query.Encode())
 	if err != nil {
 		return body, err
 	}
