@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"sync"
 
 	gtp "github.com/arkhipovkm/go-torrent-parser"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -377,7 +378,7 @@ func getSectionInlineResults(query string, offset int) (results []interface{}, n
 		}
 
 		downloadCbData := fmt.Sprintf("init-%s", topic.ID)
-		topicURL := FORUM_URL + "?t=" + topic.ID
+		topicURL := FORUM_URL + "/viewtopic.php?t=" + topic.ID
 		results = append(results, &tgbotapi.InlineQueryResultArticle{
 			Type:                "article",
 			ID:                  uuid.New().String(),
@@ -862,4 +863,7 @@ func main() {
 	for w := 0; w < runtime.NumCPU()+2; w++ {
 		go process(bot, updates)
 	}
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	wg.Wait()
 }

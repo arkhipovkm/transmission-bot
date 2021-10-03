@@ -17,3 +17,6 @@
 /torrents
 *.torrent
 *.vscode
+
+docker-compose.yaml
+transmission-bot
