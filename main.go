@@ -14,7 +14,6 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
-	"sync"
 
 	gtp "github.com/arkhipovkm/go-torrent-parser"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -821,6 +820,11 @@ func main() {
 		panic("No APP_HOSTMANE provided")
 	}
 
+	PORT := os.Getenv("PORT")
+	if APP_HOSTNAME == "" {
+		panic("No PORT provided")
+	}
+
 	os.Mkdir("torrents", os.ModePerm)
 
 	bot, err := tgbotapi.NewBotAPI(telegramBotApiToken)
@@ -849,6 +853,7 @@ func main() {
 		if info.LastErrorDate != 0 {
 			log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
 		}
+		// fmt.Println("Webhook URL: ", info.URL)
 		updates = bot.ListenForWebhook("/" + bot.Token)
 	} else {
 		_, err = bot.RemoveWebhook()
@@ -866,7 +871,7 @@ func main() {
 	for w := 0; w < runtime.NumCPU()+2; w++ {
 		go process(bot, updates)
 	}
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	wg.Wait()
+	iface := ":" + PORT
+	log.Printf("Serving on %s\n", iface)
+	log.Fatal(http.ListenAndServe(iface, nil))
 }
