@@ -14,6 +14,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 
 	gtp "github.com/arkhipovkm/go-torrent-parser"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -796,10 +797,6 @@ func process(bot *tgbotapi.BotAPI, updates tgbotapi.UpdatesChannel) {
 }
 
 func main() {
-	telegramBotApiToken := os.Getenv("TELEGRAM_BOT_API_TOKEN")
-	if telegramBotApiToken == "" {
-		panic("No Bot API Token provided")
-	}
 	FORUM_URL = os.Getenv("FORUM_URL")
 	if FORUM_URL == "" {
 		panic("No Forum URL provided")
@@ -812,17 +809,10 @@ func main() {
 	if TRANSMISSION_RPC_HOST == "" {
 		panic("No TRANSMISSION_RPC_HOST provided")
 	}
-	TRANSMISSION_RPC_USER = os.Getenv("TRANSMISSION_RPC_USER")
-	TRANSMISSION_RPC_PASSWORD = os.Getenv("TRANSMISSION_RPC_PASSWORD")
 
-	APP_HOSTNAME := os.Getenv("APP_HOSTNAME")
-	if APP_HOSTNAME == "" {
-		panic("No APP_HOSTMANE provided")
-	}
-
-	PORT := os.Getenv("PORT")
-	if APP_HOSTNAME == "" {
-		panic("No PORT provided")
+	telegramBotApiToken := os.Getenv("TELEGRAM_BOT_API_TOKEN")
+	if telegramBotApiToken == "" {
+		panic("No Bot API Token provided")
 	}
 
 	os.Mkdir("torrents", os.ModePerm)
@@ -841,37 +831,23 @@ func main() {
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
 	var updates tgbotapi.UpdatesChannel
-	if !debug {
-		_, err = bot.SetWebhook(tgbotapi.NewWebhook(fmt.Sprintf("https://%s/%s", APP_HOSTNAME, bot.Token)))
-		if err != nil {
-			log.Fatal(err)
-		}
-		info, err := bot.GetWebhookInfo()
-		if err != nil {
-			log.Fatal(err)
-		}
-		if info.LastErrorDate != 0 {
-			log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
-		}
-		// fmt.Println("Webhook URL: ", info.URL)
-		updates = bot.ListenForWebhook("/" + bot.Token)
-	} else {
-		_, err = bot.RemoveWebhook()
-		if err != nil {
-			panic(err)
-		}
-		u := tgbotapi.NewUpdate(0)
-		u.Timeout = 60
-		updates, err = bot.GetUpdatesChan(u)
-		if err != nil {
-			panic(err)
-		}
+
+	_, err = bot.RemoveWebhook()
+	if err != nil {
+		panic(err)
+	}
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	updates, err = bot.GetUpdatesChan(u)
+	if err != nil {
+		panic(err)
 	}
 
 	for w := 0; w < runtime.NumCPU()+2; w++ {
 		go process(bot, updates)
 	}
-	iface := ":" + PORT
-	log.Printf("Serving on %s\n", iface)
-	log.Fatal(http.ListenAndServe(iface, nil))
+
+	for {
+		time.Sleep(1 * time.Second)
+	}
 }

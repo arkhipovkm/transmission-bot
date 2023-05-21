@@ -5,6 +5,4 @@ COPY ./go.sum .
 RUN go mod download
 COPY ./main.go ./
 RUN go build
-COPY ./docker-entrypoint.sh ./
-ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ./transmission-bot
